@@ -1,106 +1,91 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>مولد سكريبت بالذكاء الاصطناعي</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>مُولّد سكريبت فيديو يوتيوب بالذكاء الاصطناعي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: 'Cairo', sans-serif;
-      background-color: #fdfdfd;
+      background-color: #f4f4f4;
       padding: 20px;
-      text-align: center;
+      direction: rtl;
+      text-align: right;
     }
-    textarea, input {
-      width: 90%;
+    input, textarea, button {
+      width: 100%;
       padding: 10px;
       margin: 10px 0;
-      font-size: 16px;
+      font-size: 1rem;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
     button {
-      padding: 10px 20px;
       background-color: #4CAF50;
       color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
     }
     #output {
-      margin-top: 20px;
-      text-align: right;
-      background: #f0f0f0;
-      padding: 20px;
-      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
       white-space: pre-wrap;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <h2>🎬 مولد سكريبت فيديو يوتيوب بالذكاء الاصطناعي</h2>
 
-  <input type="text" id="apiKey" placeholder="🔑 أدخل مفتاح API الخاص بـ Gemini" />
-  <button onclick="saveApiKey()">✔️ حفظ المفتاح</button>
+  <h2>🎬 مُولّد سكريبت لفيديوهات يوتيوب باستخدام Gemini</h2>
 
-  <br><br>
+  <label for="apiKey">🔑 أدخل مفتاح Gemini API الخاص بك:</label>
+  <input type="text" id="apiKey" placeholder="ضع مفتاح API هنا" />
 
-  <textarea id="prompt" rows="5" placeholder="✍️ أدخل فكرة أو عنوان الفيديو..."></textarea>
-  <br>
-  <button onclick="generateScript()">🚀 توليد السكريبت</button>
+  <label for="idea">💡 اكتب فكرة الفيديو:</label>
+  <textarea id="idea" rows="4" placeholder="مثال: كيف أبدأ قناة يوتيوب ناجحة؟"></textarea>
 
-  <div id="output"></div>
+  <button onclick="generateScript()">🎥 توليد السكريبت</button>
+
+  <h3>📜 السكريبت الناتج:</h3>
+  <div id="output">سيظهر السكريبت هنا...</div>
 
   <script>
-    function saveApiKey() {
-      const key = document.getElementById('apiKey').value.trim();
-      if (key) {
-        sessionStorage.setItem('gemini_api_key', key);
-        alert('✅ تم حفظ مفتاح API مؤقتًا!');
-      } else {
-        alert('⚠️ الرجاء إدخال المفتاح أولًا.');
-      }
-    }
-
     async function generateScript() {
-      const prompt = document.getElementById('prompt').value.trim();
-      const apiKey = sessionStorage.getItem('gemini_api_key');
-      const outputDiv = document.getElementById('output');
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const idea = document.getElementById("idea").value.trim();
+      const outputDiv = document.getElementById("output");
 
-      if (!apiKey) {
-        alert('❌ الرجاء إدخال وحفظ مفتاح API أولًا.');
+      if (!apiKey || !idea) {
+        outputDiv.textContent = "⚠️ من فضلك أدخل المفتاح والفكرة.";
         return;
       }
 
-      if (!prompt) {
-        alert('⚠️ الرجاء كتابة فكرة الفيديو.');
-        return;
-      }
+      outputDiv.textContent = "⏳ جاري التوليد...";
 
-      outputDiv.innerHTML = '⏳ جاري توليد السكريبت...';
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-        {
+      try {
+        const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [{ parts: [{ text: `اكتب سكريبت احترافي لفيديو يوتيوب عن: ${idea}` }] }]
           })
+        });
+
+        const result = await response.json();
+
+        if (result.candidates && result.candidates[0]) {
+          outputDiv.textContent = result.candidates[0].content.parts[0].text;
+        } else {
+          outputDiv.textContent = "❌ لم يتم توليد سكريبت. تحقق من المفتاح أو الفكرة.";
         }
-      );
-
-      const result = await response.json();
-
-      if (result?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        outputDiv.innerHTML = result.candidates[0].content.parts[0].text;
-      } else {
-        outputDiv.innerHTML = '❌ لم يتم توليد السكريبت. تحقق من المفتاح أو الفكرة.';
+      } catch (error) {
+        outputDiv.textContent = "❌ حدث خطأ أثناء الاتصال بـ Gemini.";
+        console.error(error);
       }
     }
   </script>
+
 </body>
 </html>
